@@ -21,9 +21,13 @@ void writeHeader(FILE *outputFilePtr, PrefixCode **prefixCodeTable)
         char * temp;
         for(temp = prefixCode->code; *temp != '\0'; temp++)
         {
-            if(*temp == '1' || *temp == '0')
+            if(*temp == '1')
             {
-                fputc(*temp, outputFilePtr);
+                fwrite(L"1", sizeof(wchar_t), 1, outputFilePtr);
+            }
+            else if(*temp == '0')
+            {
+                fwrite(L"0", sizeof(wchar_t), 1, outputFilePtr);
             }
         }
         fwrite(ender, 1, sizeof(wchar_t), outputFilePtr);
