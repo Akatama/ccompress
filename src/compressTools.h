@@ -5,5 +5,5 @@
 #include"prefixCode.h"
 void writeHeader(FILE *outputFilePtr, PrefixCode **prefixCodeTable);
 void compress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTable);
-void compressFile(FILE *inputFilePtr, FILE *outputFilePtr);
+PrefixCode *getPrefixCodes(FILE *inputFilePtr, FILE *outputFilePtr);
 #endif

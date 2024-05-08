@@ -36,7 +36,7 @@ void printPrefixTable(PrefixCode **prefixCodeTable)
     for (prefixCode = *prefixCodeTable; prefixCode != NULL; prefixCode = (PrefixCode *)prefixCode->hh.next)
     {
         char * c;
-        printf("char: %c, %d, code: %s\n", prefixCode->letter, prefixCode->letter, prefixCode->code);
+        printf("char: %c, code: %s\n", prefixCode->letter, prefixCode->code);
     }
 }
 

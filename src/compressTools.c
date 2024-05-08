@@ -1,4 +1,6 @@
 #include"compressTools.h"
+#include "huffman.h"
+#include "letterWeight.h"
 #include <complex.h>
 #include <uthash.h>
 #include <stdio.h>
@@ -71,37 +73,28 @@ void compress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTa
     }
 }
 
-void compressFile(FILE *inputFilePtr, FILE *outputFilePtr)
+PrefixCode *getPrefixCodes(FILE *inputFilePtr, FILE *outputFilePtr)
 {
     LetterWeight *letterWeights = NULL;
     PrefixCode *prefixCodeTable = NULL;
 
     countLetters(inputFilePtr, &letterWeights);
-    fseek(inputFilePtr, 0, SEEK_SET);
-
 
     printLetterWeights(&letterWeights);
 
     //build the heap
-    Heap *h = createHeap(HASH_COUNT(letterWeights), &letterWeights);
+    Heap *minHeap = createHeap(HASH_COUNT(letterWeights), &letterWeights);
+    freeLetterWeights(&letterWeights);
 
     //build the HuffMan tree
     Node * tree;
-    buildHuffmanTree(&tree, h);
-    //printHuffmanTreeInorder(tree);
+    buildHuffmanTree(&tree, minHeap);
 
     //build the prefix table
     buildCompressPrefixTable(tree, &prefixCodeTable, "\0", 1);
+
     printPrefixTable(&prefixCodeTable);
-
-    //write the header files to the file
-    writeHeader(outputFilePtr, &prefixCodeTable);
-    compress(inputFilePtr, outputFilePtr, &prefixCodeTable);
-
-    fclose(inputFilePtr);
-    fclose(outputFilePtr);
-    //free(outputFilePtr);
-    freeLetterWeights(&letterWeights);
-    freePrefixTable(&prefixCodeTable);
     freeHuffmanTree(tree);
+
+    return prefixCodeTable;
 }

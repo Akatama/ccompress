@@ -8,6 +8,10 @@
 #include <wchar.h>
 #include <unistd.h>
 #include"compressTools.h"
+#include "decompressTools.h"
+#include "prefixCode.h"
+
+FILE *openFile(char *fileName, char *mode);
 
 int main(int argc, char **argv)
 {
@@ -46,25 +50,59 @@ int main(int argc, char **argv)
     else if(compressFlag)
     {
 
-        inputFilePtr = fopen(inputFileName, "r");
+        inputFilePtr = openFile(inputFileName, "r");
         if(inputFilePtr == NULL)
-        {
-            printf("Not able to open file %s\n", inputFileName);
             exit(EXIT_FAILURE);
-        }
-
-        outputFilePtr = fopen(outputFileName, "wb");
-
+        outputFilePtr = openFile(outputFileName, "w");
         if(outputFilePtr == NULL)
         {
-            printf("Not able to open file %s\n", outputFileName);
+            fclose(inputFilePtr);
             exit(EXIT_FAILURE);
         }
 
-        compressFile(inputFilePtr, outputFilePtr);
+        //get prefixCodes, then write the header
+        PrefixCode *prefixCodes = getPrefixCodes(inputFilePtr, outputFilePtr);
+        writeHeader(outputFilePtr, &prefixCodes);
+        
+        //close the file, then reopen as append binary
+        fclose(outputFilePtr);
+        outputFilePtr = fopen(outputFileName, "ab+");
+        
+        //move input file to the start
+        fseek(inputFilePtr, 0, SEEK_SET);
+
+        //compress(inputFilePtr, outputFilePtr, &prefixCodes);
+
+        fclose(inputFilePtr);
+        fclose(outputFilePtr);
     }
     else if(decompressFlag)
     {
+        inputFilePtr = openFile(inputFileName, "r");
+        if(inputFilePtr == NULL)
+        {
+            exit(EXIT_FAILURE);
+        }
+
+        outputFilePtr = openFile(outputFileName, "w");
+        if(outputFilePtr == NULL)
+        {
+
+            fclose(inputFilePtr);
+            exit(EXIT_FAILURE);
+        }
+
+        
+        PrefixCode *prefixCodeTable = NULL;
+        size_t numberOfBytes = buildDecompressPrefixTable(inputFilePtr, &prefixCodeTable);
+        printPrefixTable(&prefixCodeTable);
+
+        fclose(inputFilePtr);
+        inputFilePtr = openFile(inputFileName, "rb");
+        fseek(inputFilePtr, numberOfBytes, SEEK_SET);
+
+        fclose(inputFilePtr);
+        fclose(outputFilePtr);
     }
     else
     {
@@ -73,3 +111,13 @@ int main(int argc, char **argv)
     }
 }
 
+
+FILE *openFile(char *fileName, char *mode)
+{
+    FILE *filePtr = fopen(fileName, mode);
+    if(filePtr == NULL)
+    {
+        printf("Not able to open file %s\n", fileName);
+    }
+    return filePtr;
+}
