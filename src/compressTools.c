@@ -14,6 +14,10 @@ void writeHeader(FILE *outputFilePtr, PrefixCode **prefixCodeTable)
     *middle = L'-';
     wchar_t *ender = malloc(sizeof(wchar_t));
     *ender = L'!';
+    wchar_t *one = malloc(sizeof(wchar_t));
+    *one = L'1';
+    wchar_t *zero = malloc(sizeof(wchar_t));
+    *zero = L'0';
     PrefixCode * prefixCode;
     for (prefixCode = *prefixCodeTable; prefixCode != NULL; prefixCode = (PrefixCode *)prefixCode->hh.next)
     {
@@ -25,11 +29,11 @@ void writeHeader(FILE *outputFilePtr, PrefixCode **prefixCodeTable)
         {
             if(*temp == '1')
             {
-                fwrite(L"1", sizeof(wchar_t), 1, outputFilePtr);
+                fwrite(one,sizeof(wchar_t), 1, outputFilePtr);
             }
             else if(*temp == '0')
             {
-                fwrite(L"0", sizeof(wchar_t), 1, outputFilePtr);
+                fwrite(zero, sizeof(wchar_t), 1, outputFilePtr);
             }
         }
         fwrite(ender, 1, sizeof(wchar_t), outputFilePtr);

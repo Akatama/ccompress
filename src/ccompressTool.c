@@ -53,7 +53,7 @@ int main(int argc, char **argv)
         inputFilePtr = openFile(inputFileName, "r");
         if(inputFilePtr == NULL)
             exit(EXIT_FAILURE);
-        outputFilePtr = openFile(outputFileName, "w");
+        outputFilePtr = openFile(outputFileName, "wb");
         if(outputFilePtr == NULL)
         {
             fclose(inputFilePtr);
@@ -65,13 +65,13 @@ int main(int argc, char **argv)
         writeHeader(outputFilePtr, &prefixCodes);
         
         //close the file, then reopen as append binary
-        fclose(outputFilePtr);
-        outputFilePtr = fopen(outputFileName, "ab+");
+        //fclose(outputFilePtr);
+        //outputFilePtr = fopen(outputFileName, "ab+");
         
         //move input file to the start
         fseek(inputFilePtr, 0, SEEK_SET);
 
-        //compress(inputFilePtr, outputFilePtr, &prefixCodes);
+        compress(inputFilePtr, outputFilePtr, &prefixCodes);
 
         fclose(inputFilePtr);
         fclose(outputFilePtr);
