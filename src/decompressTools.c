@@ -6,7 +6,7 @@
 #include<wchar.h>
 #include<stdbool.h>
 
-size_t buildDecompressPrefixTable(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
+void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
 {
     bool endOfPrefixCode = false;
     bool getLetterNext = false;
@@ -17,17 +17,15 @@ size_t buildDecompressPrefixTable(FILE *inputFilePtr, PrefixCode **prefixCodeTab
     wchar_t one = L'1';
     wchar_t zero = L'0';
     size_t codeLength = 1;
-    size_t numOfWideCharacters = 0;
 
     char *buffer = (char *)malloc(sizeof(char));
-    strncpy(buffer, "/0", 1);
+    strncpy(buffer, "\0", 1);
     PrefixCode * prefixCode = (PrefixCode *)malloc(sizeof(PrefixCode));
     wchar_t wc;
     printf("starting to build the decompress prefix table\n");
     while (!feof(inputFilePtr))
     {
         fread(&wc, sizeof(wc), 1, inputFilePtr);
-        numOfWideCharacters++;
         if(wc == starter)
         {
             getLetterNext = true;
@@ -52,7 +50,7 @@ size_t buildDecompressPrefixTable(FILE *inputFilePtr, PrefixCode **prefixCodeTab
                 codeLength = 1;
                 prefixCode = (PrefixCode *)malloc(sizeof(PrefixCode));
                 buffer = (char *)malloc(sizeof(char));
-                strncpy(buffer, "/0", 1);
+                strncpy(buffer, "\0", 1);
                 endOfPrefixCode = true;
             }
         }
@@ -90,5 +88,66 @@ size_t buildDecompressPrefixTable(FILE *inputFilePtr, PrefixCode **prefixCodeTab
             }
         }
     }
-    return sizeof(wchar_t) * numOfWideCharacters;
+}
+
+
+char *concatCode(char *currentCode, size_t currentCodeLength, char *concatChars, size_t concatCharsLength)
+{
+
+    //substract one from currentCodeLength and concatCharsLength because  both char ptrs end with /0
+    char *newCode = (char*)malloc((currentCodeLength+concatCharsLength - 1)*sizeof(char));
+    strncpy(newCode, currentCode, currentCodeLength);
+    strncat(newCode, concatChars, concatCharsLength);
+    return newCode;
+     
+}
+
+void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTable)
+{
+    PrefixCode *foundPrefixCode = NULL;
+    char readBuffer;
+    int shiftVal = 0;
+    char *currentCode = "\0";
+    size_t currentCodeLength = 1;
+    int bitsLeft = 7;
+
+    while (!feof(inputFilePtr))
+    {
+        fread(&readBuffer, sizeof(readBuffer), 1, inputFilePtr);
+        bitsLeft = 7;
+        while(bitsLeft >= 0)
+        {
+            shiftVal = readBuffer & 1<<bitsLeft;
+            bitsLeft--;
+            if(shiftVal > 0)
+            {
+                char *temp = concatCode(currentCode, currentCodeLength, "1\0", 2);
+                free(currentCode);
+                currentCode = temp;
+            }
+            else
+            {
+                char *temp = concatCode(currentCode, currentCodeLength, "0\0", 2);
+                free(currentCode);
+                currentCode = temp;
+            }
+            currentCodeLength++;
+
+            HASH_FIND_STR(*prefixCodeTable, currentCode, foundPrefixCode);
+            //if we have found a code that matches
+            if(foundPrefixCode)
+            {
+                fwrite(&foundPrefixCode->letter, sizeof(wchar_t), 1, outputFilePtr);
+                prefixCodeTable = NULL;
+                currentCodeLength = 1;
+                free(currentCode);
+                currentCode = (char *)malloc(sizeof(char));
+                strncpy(currentCode, "\0", 1);
+
+            }
+
+        }
+    }
+
+
 }

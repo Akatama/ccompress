@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     }
     else if(decompressFlag)
     {
-        inputFilePtr = openFile(inputFileName, "r");
+        inputFilePtr = openFile(inputFileName, "rb");
         if(inputFilePtr == NULL)
         {
             exit(EXIT_FAILURE);
@@ -94,12 +94,11 @@ int main(int argc, char **argv)
 
         
         PrefixCode *prefixCodeTable = NULL;
-        size_t numberOfBytes = buildDecompressPrefixTable(inputFilePtr, &prefixCodeTable);
+        readHeader(inputFilePtr, &prefixCodeTable);
         printPrefixTable(&prefixCodeTable);
 
-        fclose(inputFilePtr);
-        inputFilePtr = openFile(inputFileName, "rb");
-        fseek(inputFilePtr, numberOfBytes, SEEK_SET);
+        decompress(inputFilePtr, outputFilePtr, &prefixCodeTable);
+
 
         fclose(inputFilePtr);
         fclose(outputFilePtr);
