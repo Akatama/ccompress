@@ -49,10 +49,12 @@ void compress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTa
     int length = 8;
     int bitsLeft = 7;
     wchar_t wc;
+
     while ((wc = fgetwc(inputFilePtr)) != WEOF)
     {
         PrefixCode *wc_node;
         HASH_FIND_INT(*prefixCodeTable, &wc, wc_node);
+
         length = strlen(wc_node->code);
         char * temp = wc_node->code;
         while(length > 0)

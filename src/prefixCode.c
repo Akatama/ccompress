@@ -1,5 +1,9 @@
 #include"prefixCode.h"
 
+char concatZero[] = "0\0";
+char concatOne[] = "1\0";
+size_t concatSize = 2;
+
 void buildCompressPrefixTable(Node *tree, PrefixCode **prefixCodeTable, char *code, size_t codeLength)
 {
     if (tree->letter != 0)
@@ -9,19 +13,15 @@ void buildCompressPrefixTable(Node *tree, PrefixCode **prefixCodeTable, char *co
         prefixCode->code = (char *)malloc(codeLength+1 * sizeof(char));
         strncpy(prefixCode->code, code, codeLength);
         prefixCode->letter = tree->letter;
-        //printf("letter: %c, code: %s\n", prefixCode->letter, prefixCode->code);
+
         HASH_ADD_INT(*prefixCodeTable, letter, prefixCode);
     }
     else
     {
-        char *leftString = (char *)malloc((codeLength + 1)*sizeof(char));
-        strncpy(leftString, code, codeLength);
-        strncat(leftString, "0\0", 2);
+        char *leftString = concatCode(code, codeLength, concatZero, concatSize);
         buildCompressPrefixTable(tree->left, prefixCodeTable, leftString, codeLength+1);
 
-        char *rightString = (char *)malloc((codeLength + 1)*sizeof(char));
-        strncpy(rightString, code, codeLength);
-        strncat(rightString, "1\0", 2);
+        char *rightString = concatCode(code, codeLength, concatOne, concatSize);
         buildCompressPrefixTable(tree->right, prefixCodeTable, rightString, codeLength+1);
         
         free(leftString);

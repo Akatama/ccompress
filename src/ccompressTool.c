@@ -64,10 +64,6 @@ int main(int argc, char **argv)
         PrefixCode *prefixCodeTable = getPrefixCodes(inputFilePtr, outputFilePtr);
         writeHeader(outputFilePtr, &prefixCodeTable);
         
-        //close the file, then reopen as append binary
-        //fclose(outputFilePtr);
-        //outputFilePtr = fopen(outputFileName, "ab+");
-        
         //move input file to the start
         fseek(inputFilePtr, 0, SEEK_SET);
 

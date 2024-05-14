@@ -11,7 +11,7 @@ typedef struct letterWeight
 } LetterWeight;
 
 
-int countLetters(FILE *fptr, LetterWeight **letterWeights);
+void countLetters(FILE *fptr, LetterWeight **letterWeights);
 void printLetterWeights(LetterWeight **letterWeights);
 
 void freeLetterWeights(LetterWeight **letterWeights);

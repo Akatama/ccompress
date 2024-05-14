@@ -1,7 +1,7 @@
 #include"letterWeight.h"
 #include<wchar.h>
 
-int countLetters(FILE *fptr, LetterWeight **letterWeights)
+void countLetters(FILE *fptr, LetterWeight **letterWeights)
 {
     wchar_t wc;
     while ((wc = fgetwc(fptr)) != WEOF)
@@ -20,7 +20,6 @@ int countLetters(FILE *fptr, LetterWeight **letterWeights)
             weight->weight++;
         }
     }
-    return EXIT_SUCCESS;
 }
 
 

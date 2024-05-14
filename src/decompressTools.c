@@ -12,32 +12,37 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
     bool endOfPrefixCode = false;
     bool getLetterNext = false;
     bool getPrefixCodeNext = false;
+
     wchar_t starter = L';';
     wchar_t middle = L'-';
     wchar_t ender = L'!';
     wchar_t one = L'1';
     wchar_t zero = L'0';
-    size_t codeLength = 1;
 
+    char concatOne[] = "1\0";
+    char concatZero[] = "0\0";
+    size_t concatSize = 2;
+
+    size_t bufferLength = 1;
     char *buffer = (char *)malloc(sizeof(char));
     strncpy(buffer, "\0", 1);
+
     PrefixCode * prefixCode = (PrefixCode *)malloc(sizeof(PrefixCode));
+    
     wchar_t wc;
+
     printf("starting to build the decompress prefix table\n");
+    fread(&wc, sizeof(wc), 1, inputFilePtr);
     while (!feof(inputFilePtr))
     {
-        fread(&wc, sizeof(wc), 1, inputFilePtr);
-        if(wc == starter && !getLetterNext)
+
+        if(getLetterNext)
         {
-            getLetterNext = true;
-            endOfPrefixCode = false;
-        }
-        else if(wc == middle && !getLetterNext)
-        {
+            prefixCode->letter = wc;
             getLetterNext = false;
-            getPrefixCodeNext = true;
         }
-        else if(wc == ender && !getLetterNext)
+        //need to be able to check if we are done getting the prefixCode
+        else if(wc == ender)
         {
             if(endOfPrefixCode)
             {
@@ -46,49 +51,45 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
             else
             {
                 getPrefixCodeNext = false;
+
                 prefixCode->code = buffer;
                 HASH_ADD_KEYPTR(hh, *prefixCodeTable, prefixCode->code, strlen(prefixCode->code), prefixCode);
-                codeLength = 1;
+                
+                //reset everything back for the next look
+                bufferLength = 1;
                 prefixCode = (PrefixCode *)malloc(sizeof(PrefixCode));
                 buffer = (char *)malloc(sizeof(char));
                 strncpy(buffer, "\0", 1);
                 endOfPrefixCode = true;
             }
         }
-        else
+        else if(getPrefixCodeNext)
         {
-            if(getLetterNext)
+            bufferLength++;
+            char *temp = (char *)malloc((bufferLength)*sizeof(char));
+            if(wc == zero) 
             {
-                prefixCode->letter = wc;
-                getLetterNext = false;
+                temp = concatCode(buffer, bufferLength, concatZero, concatSize);
             }
-            else if(getPrefixCodeNext)
+            else if (wc == one) 
             {
-                codeLength++;
-                if(wc == zero) 
-                {
-                    char *tempString = (char *)malloc((codeLength + 1)*sizeof(char));
-                    strncpy(tempString, buffer, codeLength);
-                    strncat(tempString, "0\0", 2);
-                    free(buffer);
-                    buffer = tempString;
-
-                }
-                else if (wc == one) 
-                {
-                    char *tempString = (char *)malloc((codeLength + 1)*sizeof(char));
-                    strncpy(tempString, buffer, codeLength);
-                    strncat(tempString, "1\0", 2);
-                    free(buffer);
-                    buffer = tempString;
-                }
-
-                else
-                {
-                    printf("Error, invalid character: %c\n", wc);
-                }
+                temp = concatCode(buffer, bufferLength, concatOne, concatSize);
             }
+            free(buffer);
+            buffer = temp;
         }
+        else if(wc == starter)
+        {
+            getLetterNext = true;
+            endOfPrefixCode = false;
+        }
+        else if(wc == middle)
+        {
+            getLetterNext = false;
+            getPrefixCodeNext = true;
+        }
+        
+        fread(&wc, sizeof(wc), 1, inputFilePtr);
     }
 }
 
@@ -99,8 +100,8 @@ void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCode
     char *currentCode = (char *)malloc(sizeof(char));
     strncpy(currentCode, "\0", 1);
     size_t currentCodeLength = 1;
-    char *one = "1\0";
-    char *zero = "0\0";
+    char one[] = "1\0";
+    char zero[] = "0\0";
     size_t concatLength = 2;
     
     char readBuffer;
