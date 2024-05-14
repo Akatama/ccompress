@@ -61,8 +61,8 @@ int main(int argc, char **argv)
         }
 
         //get prefixCodes, then write the header
-        PrefixCode *prefixCodes = getPrefixCodes(inputFilePtr, outputFilePtr);
-        writeHeader(outputFilePtr, &prefixCodes);
+        PrefixCode *prefixCodeTable = getPrefixCodes(inputFilePtr, outputFilePtr);
+        writeHeader(outputFilePtr, &prefixCodeTable);
         
         //close the file, then reopen as append binary
         //fclose(outputFilePtr);
@@ -71,7 +71,8 @@ int main(int argc, char **argv)
         //move input file to the start
         fseek(inputFilePtr, 0, SEEK_SET);
 
-        compress(inputFilePtr, outputFilePtr, &prefixCodes);
+        compress(inputFilePtr, outputFilePtr, &prefixCodeTable);
+        freePrefixTable(&prefixCodeTable);
 
         fclose(inputFilePtr);
         fclose(outputFilePtr);
@@ -99,7 +100,7 @@ int main(int argc, char **argv)
 
         decompress(inputFilePtr, outputFilePtr, &prefixCodeTable);
 
-
+        freePrefixTable(&prefixCodeTable);
         fclose(inputFilePtr);
         fclose(outputFilePtr);
     }

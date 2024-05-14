@@ -36,7 +36,7 @@ void printPrefixTable(PrefixCode **prefixCodeTable)
     for (prefixCode = *prefixCodeTable; prefixCode != NULL; prefixCode = (PrefixCode *)prefixCode->hh.next)
     {
         char * c;
-        printf("char: %c, code: %s\n", prefixCode->letter, prefixCode->code);
+        printf("char: %c intVal: %d code: %s\n", prefixCode->letter, prefixCode->letter, prefixCode->code);
     }
 }
 
@@ -48,4 +48,16 @@ void freePrefixTable(PrefixCode **prefixCodeTable)
         HASH_DEL(*prefixCodeTable, current);
         free(current);
     }
+}
+
+
+char *concatCode(char *currentCode, size_t currentCodeLength, char *concatChars, size_t concatCharsLength)
+{
+
+    //substract one from currentCodeLength and concatCharsLength because  both char ptrs end with /0
+    char *newCode = (char*)malloc((currentCodeLength+concatCharsLength - 1)*sizeof(char));
+    strncpy(newCode, currentCode, currentCodeLength);
+    strncat(newCode, concatChars, concatCharsLength);
+    return newCode;
+     
 }

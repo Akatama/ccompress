@@ -5,6 +5,7 @@
 #include <uthash.h>
 #include <stdio.h>
 #include <wchar.h>
+#include <stdbool.h>
 
 void writeHeader(FILE *outputFilePtr, PrefixCode **prefixCodeTable)
 {
@@ -45,7 +46,8 @@ void writeHeader(FILE *outputFilePtr, PrefixCode **prefixCodeTable)
 void compress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTable)
 {    
     char buffer = 0;
-    int length,bitsLeft = 8;
+    int length = 8;
+    int bitsLeft = 7;
     wchar_t wc;
     while ((wc = fgetwc(inputFilePtr)) != WEOF)
     {
@@ -57,24 +59,21 @@ void compress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTa
         {
             if(*temp == '1')
             {
-                buffer |= (1 << (7 - bitsLeft));
+                buffer |= 1<<bitsLeft;
             }
             bitsLeft--;
             length--;
             temp++;
-            if(bitsLeft == 0)
+            if(bitsLeft < 0)
             {
+
                 fputc(buffer, outputFilePtr);
                 buffer = 0;
-                bitsLeft = 8;
+                bitsLeft = 7;
             }
         }
     }
-    if (bitsLeft != 8)
-    {
-        buffer = buffer << (bitsLeft - 1);
-        fputc(buffer, outputFilePtr);
-    }
+    fputc(buffer, outputFilePtr);
 }
 
 PrefixCode *getPrefixCodes(FILE *inputFilePtr, FILE *outputFilePtr)

@@ -15,4 +15,5 @@ typedef struct prefixCode
 void buildCompressPrefixTable(Node *tree, PrefixCode **prefixCodeTable, char *code, size_t codeLength);
 void printPrefixTable(PrefixCode **prefixCodeTable);
 void freePrefixTable(PrefixCode **prefixCodeTable);
+char *concatCode(char *currentCode, size_t currentCodeLength, char *concatChars, size_t concatCharsLength);
 #endif

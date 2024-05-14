@@ -5,6 +5,7 @@
 #include <uthash.h>
 #include<wchar.h>
 #include<stdbool.h>
+#include <stdlib.h>
 
 void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
 {
@@ -26,12 +27,12 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
     while (!feof(inputFilePtr))
     {
         fread(&wc, sizeof(wc), 1, inputFilePtr);
-        if(wc == starter)
+        if(wc == starter && !getLetterNext)
         {
             getLetterNext = true;
             endOfPrefixCode = false;
         }
-        else if(wc == middle)
+        else if(wc == middle && !getLetterNext)
         {
             getLetterNext = false;
             getPrefixCodeNext = true;
@@ -46,7 +47,7 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
             {
                 getPrefixCodeNext = false;
                 prefixCode->code = buffer;
-                HASH_ADD_KEYPTR(hh, *prefixCodeTable, prefixCode->code, codeLength, prefixCode);
+                HASH_ADD_KEYPTR(hh, *prefixCodeTable, prefixCode->code, strlen(prefixCode->code), prefixCode);
                 codeLength = 1;
                 prefixCode = (PrefixCode *)malloc(sizeof(PrefixCode));
                 buffer = (char *)malloc(sizeof(char));
@@ -59,6 +60,7 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
             if(getLetterNext)
             {
                 prefixCode->letter = wc;
+                getLetterNext = false;
             }
             else if(getPrefixCodeNext)
             {
@@ -90,63 +92,57 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
     }
 }
 
-
-char *concatCode(char *currentCode, size_t currentCodeLength, char *concatChars, size_t concatCharsLength)
-{
-
-    //substract one from currentCodeLength and concatCharsLength because  both char ptrs end with /0
-    char *newCode = (char*)malloc((currentCodeLength+concatCharsLength - 1)*sizeof(char));
-    strncpy(newCode, currentCode, currentCodeLength);
-    strncat(newCode, concatChars, concatCharsLength);
-    return newCode;
-     
-}
-
 void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTable)
 {
+    printf("Starting decompression\n");
     PrefixCode *foundPrefixCode = NULL;
+    char *currentCode = (char *)malloc(sizeof(char));
+    strncpy(currentCode, "\0", 1);
+    size_t currentCodeLength = 1;
+    char *one = "1\0";
+    char *zero = "0\0";
+    size_t concatLength = 2;
+    
     char readBuffer;
     int shiftVal = 0;
-    char *currentCode = "\0";
-    size_t currentCodeLength = 1;
     int bitsLeft = 7;
 
+    fread(&readBuffer, sizeof(readBuffer), 1, inputFilePtr);
     while (!feof(inputFilePtr))
     {
-        fread(&readBuffer, sizeof(readBuffer), 1, inputFilePtr);
-        bitsLeft = 7;
         while(bitsLeft >= 0)
         {
             shiftVal = readBuffer & 1<<bitsLeft;
             bitsLeft--;
             if(shiftVal > 0)
             {
-                char *temp = concatCode(currentCode, currentCodeLength, "1\0", 2);
+                char *temp = concatCode(currentCode, currentCodeLength, one, concatLength);
                 free(currentCode);
                 currentCode = temp;
             }
             else
             {
-                char *temp = concatCode(currentCode, currentCodeLength, "0\0", 2);
+                char *temp = concatCode(currentCode, currentCodeLength, zero, concatLength);
                 free(currentCode);
                 currentCode = temp;
             }
             currentCodeLength++;
-
             HASH_FIND_STR(*prefixCodeTable, currentCode, foundPrefixCode);
             //if we have found a code that matches
-            if(foundPrefixCode)
+            if(foundPrefixCode != NULL)
             {
-                fwrite(&foundPrefixCode->letter, sizeof(wchar_t), 1, outputFilePtr);
-                prefixCodeTable = NULL;
+                fputwc(foundPrefixCode->letter, outputFilePtr);
+                foundPrefixCode = NULL;
                 currentCodeLength = 1;
                 free(currentCode);
                 currentCode = (char *)malloc(sizeof(char));
                 strncpy(currentCode, "\0", 1);
 
             }
-
         }
+        fread(&readBuffer, sizeof(readBuffer), 1, inputFilePtr);
+
+        bitsLeft = 7;
     }
 
 
