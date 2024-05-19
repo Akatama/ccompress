@@ -1,9 +1,5 @@
 #include"prefixCode.h"
 
-char concatZero[] = "0\0";
-char concatOne[] = "1\0";
-size_t concatSize = 2;
-
 void buildCompressPrefixTable(Node *tree, PrefixCode **prefixCodeTable, char *code, size_t codeLength)
 {
     if (tree->letter != 0)
@@ -18,14 +14,14 @@ void buildCompressPrefixTable(Node *tree, PrefixCode **prefixCodeTable, char *co
     }
     else
     {
-        char *leftString = concatCode(code, codeLength, concatZero, concatSize);
-        buildCompressPrefixTable(tree->left, prefixCodeTable, leftString, codeLength+1);
+        char *leftCode = concatZero(code, codeLength);
+        buildCompressPrefixTable(tree->left, prefixCodeTable, leftCode, codeLength+1);
 
-        char *rightString = concatCode(code, codeLength, concatOne, concatSize);
-        buildCompressPrefixTable(tree->right, prefixCodeTable, rightString, codeLength+1);
+        char *rightCode = concatOne(code, codeLength);
+        buildCompressPrefixTable(tree->right, prefixCodeTable, rightCode, codeLength+1);
         
-        free(leftString);
-        free(rightString);
+        free(leftCode);
+        free(rightCode);
     }
 }
 
@@ -60,4 +56,18 @@ char *concatCode(char *currentCode, size_t currentCodeLength, char *concatChars,
     strncat(newCode, concatChars, concatCharsLength);
     return newCode;
      
+}
+
+char zero = '0';
+char one = '1';
+size_t concatSize = 2;
+
+char *concatOne (char *currentCode, size_t currentCodeLength)
+{
+    return concatCode(currentCode, currentCodeLength, &one, concatSize);
+}
+
+char *concatZero (char *currentCode, size_t currentCodeLength)
+{
+    return concatCode(currentCode, currentCodeLength, &zero, concatSize);
 }

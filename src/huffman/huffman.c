@@ -21,6 +21,8 @@ Heap* createHeap(int capacity, LetterWeight **letterWeights)
         printf("Memory error initializing array for the heap");
         exit(EXIT_FAILURE);
     }
+
+    // add all of the letter weights to the min heap
     LetterWeight *letterWeight;
     int i = 0;
     for(letterWeight = *letterWeights; letterWeight != NULL; letterWeight = (LetterWeight *)letterWeight->hh.next)
@@ -34,6 +36,7 @@ Heap* createHeap(int capacity, LetterWeight **letterWeights)
         i++;
     }
 
+    // heapfiy starting from the parent of the last added node
     h->size = i;
     i = (h->size - 2) / 2;
     while (i >= 0)
@@ -46,22 +49,27 @@ Heap* createHeap(int capacity, LetterWeight **letterWeights)
 
 void heapify(Heap *h, int index)
 {
+    //get the indexes
     int left = index * 2 + 1;
     int right = index * 2 + 2;
     int min = index;
 
+    //basic checking to make sure we haven't gone outisde the bounds of the array
     if(left >= h->size || left < 0)
         left = -1;
     if (right >= h->size || right < 0)
         right = -1;
 
+    //checking to see which out of index, left and right is the node with the minimum weight
     if(left != -1 && h->arr[left]->weight < h->arr[index]->weight)
         min = left;
     if(right != -1 && h->arr[right]->weight < h->arr[min]->weight)
         min = right;
 
+    //if index is not the min
     if (min != index)
     {
+        //swap the index and min, then heapify on min
         Node *temp = h->arr[min];
         h->arr[min] = h->arr[index];
         h->arr[index] = temp;
@@ -102,8 +110,10 @@ void insertHelper(Heap *h, int index)
 {
     int parent = (index - 1) / 2;
 
+    //if the weight of the parent is greater than the weight of the newly added node
     if(h->arr[parent]->weight > h->arr[index]->weight)
     {
+        // swap them, then do the same thing to the parent
         Node *temp = h->arr[parent];
         h->arr[parent] = h->arr[index];
         h->arr[index] = temp;
@@ -120,11 +130,13 @@ void buildHuffmanTree(Node **tree, Heap *h)
     {
         tmp1 = popMin(h);
         tmp2 = popMin(h);
+
         tmp3 = (Node *)malloc(sizeof(Node));
         tmp3->weight = tmp1->weight + tmp2->weight;
         tmp3->letter = 0;
         tmp3->left = tmp1;
         tmp3->right = tmp2;
+
         insert(h, tmp3);
     }
     *tree = tmp3;

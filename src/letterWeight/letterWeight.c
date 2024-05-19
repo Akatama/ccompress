@@ -40,5 +40,6 @@ void freeLetterWeights(LetterWeight **letterWeights)
     HASH_ITER(hh, *letterWeights, current, tmp)
     {
         HASH_DEL(*letterWeights, current);
+        free(current);
     }
 }

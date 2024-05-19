@@ -1,6 +1,6 @@
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
-#include"letterWeight.h"
+#include"../letterWeight/letterWeight.h"
 
 typedef struct node
 {

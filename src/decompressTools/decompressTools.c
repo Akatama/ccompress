@@ -1,5 +1,4 @@
 #include"decompressTools.h"
-#include "prefixCode.h"
 #include <stdio.h>
 #include <string.h>
 #include <uthash.h>
@@ -18,10 +17,6 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
     wchar_t ender = L'!';
     wchar_t one = L'1';
     wchar_t zero = L'0';
-
-    char concatOne[] = "1\0";
-    char concatZero[] = "0\0";
-    size_t concatSize = 2;
 
     size_t bufferLength = 1;
     char *buffer = (char *)malloc(sizeof(char));
@@ -69,11 +64,11 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
             char *temp = (char *)malloc((bufferLength)*sizeof(char));
             if(wc == zero) 
             {
-                temp = concatCode(buffer, bufferLength, concatZero, concatSize);
+                temp = concatZero(buffer, bufferLength);
             }
             else if (wc == one) 
             {
-                temp = concatCode(buffer, bufferLength, concatOne, concatSize);
+                temp = concatOne(buffer, bufferLength);
             }
             free(buffer);
             buffer = temp;
@@ -96,13 +91,12 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
 void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTable)
 {
     printf("Starting decompression\n");
+
     PrefixCode *foundPrefixCode = NULL;
+
     char *currentCode = (char *)malloc(sizeof(char));
     strncpy(currentCode, "\0", 1);
     size_t currentCodeLength = 1;
-    char one[] = "1\0";
-    char zero[] = "0\0";
-    size_t concatLength = 2;
     
     char readBuffer;
     int shiftVal = 0;
@@ -113,23 +107,27 @@ void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCode
     {
         while(bitsLeft >= 0)
         {
+            // see if bit at location bitsLeft is 1 or a zero
             shiftVal = readBuffer & 1<<bitsLeft;
             bitsLeft--;
+
+            //if shiftVal is not zero, then it was a 1
             if(shiftVal > 0)
             {
-                char *temp = concatCode(currentCode, currentCodeLength, one, concatLength);
+                char *temp = concatOne(currentCode, currentCodeLength);
                 free(currentCode);
                 currentCode = temp;
             }
             else
             {
-                char *temp = concatCode(currentCode, currentCodeLength, zero, concatLength);
+                char *temp = concatZero(currentCode, currentCodeLength);
                 free(currentCode);
                 currentCode = temp;
             }
+
             currentCodeLength++;
             HASH_FIND_STR(*prefixCodeTable, currentCode, foundPrefixCode);
-            //if we have found a code that matches
+            //if we have found a code that matches then add it
             if(foundPrefixCode != NULL)
             {
                 fputwc(foundPrefixCode->letter, outputFilePtr);
@@ -142,7 +140,6 @@ void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCode
             }
         }
         fread(&readBuffer, sizeof(readBuffer), 1, inputFilePtr);
-
         bitsLeft = 7;
     }
 
