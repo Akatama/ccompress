@@ -25,12 +25,13 @@ int main(int argc, char **argv)
     bool compressFlag = false;
     bool decompressFlag = false;
     bool helpFlag = false;
+    bool quietFlag = false;
 
     setlocale(LC_ALL, "");
     inputFileName = argv[1];
 
     int options;
-    while (( options = getopt(argc, argv, "c:d:h")) != -1)
+    while (( options = getopt(argc, argv, "c:d:hq")) != -1)
         switch(options)
         {
             case 'c':
@@ -43,6 +44,9 @@ int main(int argc, char **argv)
                 break;
             case 'h':
                 helpFlag = true;
+                break;
+            case 'q':
+                quietFlag = true;
                 break;
             case '?':
                 printf("Error: unknown option %c\n", optopt);
@@ -74,7 +78,7 @@ int main(int argc, char **argv)
         }
 
         //get prefixCodes, then write the header
-        PrefixCode *prefixCodeTable = getPrefixCodes(inputFilePtr, outputFilePtr);
+        PrefixCode *prefixCodeTable = getPrefixCodes(inputFilePtr, outputFilePtr, quietFlag);
         writeHeader(outputFilePtr, &prefixCodeTable);
         
         //move input file to the start
@@ -104,10 +108,12 @@ int main(int argc, char **argv)
 
         
         PrefixCode *prefixCodeTable = NULL;
-        readHeader(inputFilePtr, &prefixCodeTable);
-        printPrefixTable(&prefixCodeTable);
+        readHeader(inputFilePtr, &prefixCodeTable, quietFlag);
 
-        decompress(inputFilePtr, outputFilePtr, &prefixCodeTable);
+        if(!quietFlag)
+            printPrefixTable(&prefixCodeTable);
+
+        decompress(inputFilePtr, outputFilePtr, &prefixCodeTable, quietFlag);
 
         freePrefixTable(&prefixCodeTable);
         fclose(inputFilePtr);

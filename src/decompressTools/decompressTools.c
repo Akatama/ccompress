@@ -6,7 +6,7 @@
 #include<stdbool.h>
 #include <stdlib.h>
 
-void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
+void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable, bool quietFlag)
 {
     bool endOfPrefixCode = false;
     bool getLetterNext = false;
@@ -26,7 +26,8 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
     
     wchar_t wc;
 
-    printf("starting to build the decompress prefix table\n");
+    if(!quietFlag)
+        printf("starting to build the decompress prefix table\n");
     fread(&wc, sizeof(wc), 1, inputFilePtr);
     while (!feof(inputFilePtr))
     {
@@ -88,9 +89,10 @@ void readHeader(FILE *inputFilePtr, PrefixCode **prefixCodeTable)
     }
 }
 
-void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTable)
+void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTable, bool quietFlag)
 {
-    printf("Starting decompression\n");
+    if(!quietFlag)
+        printf("Starting decompression\n");
 
     PrefixCode *foundPrefixCode = NULL;
 

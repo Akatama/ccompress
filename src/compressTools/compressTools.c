@@ -75,14 +75,14 @@ void compress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTa
     fputc(buffer, outputFilePtr);
 }
 
-PrefixCode *getPrefixCodes(FILE *inputFilePtr, FILE *outputFilePtr)
+PrefixCode *getPrefixCodes(FILE *inputFilePtr, FILE *outputFilePtr, bool quietFlag)
 {
     LetterWeight *letterWeights = NULL;
     PrefixCode *prefixCodeTable = NULL;
 
     countLetters(inputFilePtr, &letterWeights);
-
-    printLetterWeights(&letterWeights);
+    if(!quietFlag)
+        printLetterWeights(&letterWeights);
 
     //build the heap
     Heap *minHeap = createHeap(HASH_COUNT(letterWeights), &letterWeights);
@@ -94,8 +94,8 @@ PrefixCode *getPrefixCodes(FILE *inputFilePtr, FILE *outputFilePtr)
 
     //build the prefix table
     buildCompressPrefixTable(tree, &prefixCodeTable, "\0", 1);
-
-    printPrefixTable(&prefixCodeTable);
+    if(!quietFlag)
+        printPrefixTable(&prefixCodeTable);
     freeHuffmanTree(tree);
 
     return prefixCodeTable;
