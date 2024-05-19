@@ -51,7 +51,7 @@ char *concatCode(char *currentCode, size_t currentCodeLength, char *concatChars,
 {
 
     //substract one from currentCodeLength and concatCharsLength because  both char ptrs end with /0
-    char *newCode = (char*)malloc((currentCodeLength+concatCharsLength - 1)*sizeof(char));
+    char *newCode = (char*)malloc((currentCodeLength+concatCharsLength)*sizeof(char));
     strncpy(newCode, currentCode, currentCodeLength);
     strncat(newCode, concatChars, concatCharsLength);
     return newCode;
@@ -60,7 +60,7 @@ char *concatCode(char *currentCode, size_t currentCodeLength, char *concatChars,
 
 char zero = '0';
 char one = '1';
-size_t concatSize = 2;
+size_t concatSize = 1;
 
 char *concatOne (char *currentCode, size_t currentCodeLength)
 {
