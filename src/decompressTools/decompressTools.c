@@ -100,17 +100,19 @@ void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCode
     strncpy(currentCode, "\0", 1);
     size_t currentCodeLength = 1;
     
-    char readBuffer;
+    char currentBuffer;
+    char nextBuffer;
     int shiftVal = 0;
     int bitsLeft = 7;
 
-    fread(&readBuffer, sizeof(readBuffer), 1, inputFilePtr);
+    fread(&currentBuffer, sizeof(currentBuffer), 1, inputFilePtr);
+    fread(&nextBuffer, sizeof(nextBuffer), 1, inputFilePtr);
     while (!feof(inputFilePtr))
     {
         while(bitsLeft >= 0)
         {
             // see if bit at location bitsLeft is 1 or a zero
-            shiftVal = readBuffer & 1<<bitsLeft;
+            shiftVal = currentBuffer & 1<<bitsLeft;
             bitsLeft--;
 
             //if shiftVal is not zero, then it was a 1
@@ -141,8 +143,59 @@ void decompress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCode
 
             }
         }
-        fread(&readBuffer, sizeof(readBuffer), 1, inputFilePtr);
+        currentBuffer = nextBuffer;
+        fread(&nextBuffer, sizeof(nextBuffer), 1, inputFilePtr);
         bitsLeft = 7;
+    }
+
+    //currentBuffer now has the last byte in the file
+    //first, we need to figure out which index in the byte has the last 1
+    //This last 1 signals the end of the compressed stream, any data passed
+    //it is junk data and should not be written
+    //After we find that out, the rest of this is the same as what we did before
+    int lastBit = 0;
+    int i;
+    for(i = 7; i >= 0; i--)
+    {
+        shiftVal = currentBuffer & 1<<i;
+        if(shiftVal > 0)
+            lastBit = i;
+        shiftVal = 0;
+    }
+    //last bit is the end, so we only need to read bits before it
+    while(bitsLeft > lastBit)
+    {
+        shiftVal = currentBuffer & 1<<bitsLeft;
+        bitsLeft--;
+
+        //if shiftVal is not zero, then it was a 1
+        if(shiftVal > 0)
+        {
+            char *temp = concatOne(currentCode, currentCodeLength);
+            free(currentCode);
+            currentCode = temp;
+        }
+        else
+        {
+            char *temp = concatZero(currentCode, currentCodeLength);
+            free(currentCode);
+            currentCode = temp;
+        }
+
+        currentCodeLength++;
+        HASH_FIND_STR(*prefixCodeTable, currentCode, foundPrefixCode);
+        //if we have found a code that matches then add it
+        if(foundPrefixCode != NULL)
+        {
+            fputwc(foundPrefixCode->letter, outputFilePtr);
+            foundPrefixCode = NULL;
+            currentCodeLength = 1;
+            free(currentCode);
+            currentCode = (char *)malloc(sizeof(char));
+            strncpy(currentCode, "\0", 1);
+
+        }
+
     }
 
 

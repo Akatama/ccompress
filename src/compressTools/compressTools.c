@@ -72,6 +72,11 @@ void compress(FILE *inputFilePtr, FILE *outputFilePtr, PrefixCode **prefixCodeTa
             }
         }
     }
+    //flip one last bit to 1 unless we have no extra space left in a byte at the end)
+    if(bitsLeft >= 0)
+    {
+        buffer |= 1<<bitsLeft;
+    }
     fputc(buffer, outputFilePtr);
 }
 
