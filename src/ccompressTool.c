@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <uthash.h>
-#include <utstring.h>
 #include <wchar.h>
 #include <unistd.h>
 #include"compressTools/compressTools.h"
@@ -85,6 +84,7 @@ int main(int argc, char **argv)
         fseek(inputFilePtr, 0, SEEK_SET);
 
         compress(inputFilePtr, outputFilePtr, &prefixCodeTable);
+
         freePrefixTable(&prefixCodeTable);
 
         fclose(inputFilePtr);
